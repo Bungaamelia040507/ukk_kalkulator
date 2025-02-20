@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator</title>
+    <style>
+        body {
+            background-color: rgb(234, 175, 150);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding-top: 30px;
+        }
+        .card {
+            background-color: #f1f3f5;
+            box-shadow: inset 5px 5px 12px #fff, 5px 5px 12px rgba(0,0,0,0.16);
+            width: 300px;
+            height: 500px;
+            border-radius: 20px;
+            display: flex;
+            padding: 20px;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .display {
+            background-color: #f1f3f5;
+            height: 30%;
+            width: 100%;
+            border-radius: 20px;
+            box-shadow: inset 2px 3px 11px rgba(0,0,0,0.16), 5px 5px 12px #fff;
+            display: flex;
+            justify-content: center;
+        }
+        .display input {
+            background-color: transparent;
+            border: none;
+            text-align: end;
+            font-size: 60px;
+            width: 90%;
+            outline: none;
+        }
+        .button {
+            height: 70%;
+            display: flex;
+            width: 100%;
+            justify-content: center;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .tombol-kiri {
+            width: 70%;
+            display: grid;
+            grid-template-columns: auto auto auto;
+            justify-content: space-around;
+            align-items: center;
+        }
+        .tombol {
+            background-color: #f1f3f5;
+            box-shadow: inset 5px 5px 12px transparent, 5px 5px 12px rgba(0,0,0,0.16);
+            border: none;
+            height: 50px;
+            width: 50px;
+            border-radius: 100%;
+            font-size: 15px;
+            cursor: pointer;
+            color: rgb(255, 0, 0);
+        }
+        .tombol.hover {
+            transform: scale(0.9);
+        }
+        .tombol-kanan {
+            width: 30%;
+            border-radius: 20px;
+            background-color: rgb(238, 197, 197);
+            box-shadow: inset 5px 5px 12px #faf7cf, 5px 5px 12px rgba(0,0,0,0.16);
+            height: 100%;
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+            justify-content: space-around;
+        }
+        .tombol-action {
+            border-radius: 30%;
+        }
+        .tombol-clear {
+            background-color: red;
+            color: white;
+        }
+        .history {
+            margin-top: 20px;
+        }
+        #history-container {
+            display: none;
+            background: #f9f9f9;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .history h3 {
+            margin: 0 0 10px;
+        }
+        .history ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .history ul li {
+            margin-bottom: 5px;
+        }
+        .history button {
+            width: 100%;
+            background: #ffb7bf;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: start;
+            gap: 20px;
+        }
+        .history {
+            width: 200px;
+            background: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            display: none;
+            transition: transform 0.3s ease-in-out, opacity 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <main class="card">
+            <form class="display" onsubmit="return false;">
+                <label for="screen"></label>
+                <input id="screen" value="0" readonly title="Screen Display" placeholder="Screen Display">
+            </form>
+            
+            <section class="button">
+                <div class="tombol-kiri">
+                    <button class="tombol tombol-clear" onclick="handleInput('clear')">AC</button>
+                    <button class="tombol" onclick="handleInput('+/-')">+/-</button>
+                    <button class="tombol" onclick="handleInput('%')">%</button>
+                    
+                    <script>
+                        for (let i = 9; i >= 1; i--) {
+                            document.write(`<button class="tombol" onclick="handleInput('${i}')">${i}</button>`);
+                        }
+                    </script>
+                    <button class="tombol" onclick="toggleHistory()">R</button>
+                    <button class="tombol" onclick="handleInput('0')">0</button>
+                    <button class="tombol" onclick="handleInput('.')">.</button>
+                </div>
+
+                <div class="tombol-kanan">
+                    <button class="tombol" onclick="handleInput('/')">/</button>
+                    <button class="tombol" onclick="handleInput('*')">x</button>
+                    <button class="tombol" onclick="handleInput('-')">-</button>
+                    <button class="tombol" onclick="handleInput('+')">+</button>
+                    <button class="tombol tombol-action" onclick="handleInput('action')" >=</button>
+                </div>
+            </section>
+        </main>
+
+        <div class="history" id="history-container">
+            <h3>Riwayat Perhitungan</h3>
+            <ul id="history-list"></ul>
+            <button class="tombol tombol-clear" onclick="clearHistory()">Hapus</button>
+        </div>
+    </div>
+
+    <script>
+        const result = document.getElementById('screen');
+        const historyList = document.getElementById('history-list');
+        const historyContainer = document.getElementById('history-container');
+        let history = JSON.parse(localStorage.getItem('history')) || [];
+
+        function updateHistoryUI() {
+            historyList.innerHTML = history.map(entry => `<li>${entry}</li>`).join('');
+        }
+
+        function handleInput(input) {
+            if (input === 'clear') {
+                result.value = '0';
+            } else if (input === 'action') {
+                try {
+                    let calculation = result.value.replace(/%/g, '/100');
+                    if (/\/0(?!\.)/.test(calculation) || /^0\//.test(calculation)) {
+                        alert('Error: Operasi tidak valid');
+                        return;
+                    }
+                    let answer = eval(calculation);
+                    result.value = answer;
+                    history.push(`${calculation} = ${answer}`);
+                    
+                    if (history.length > 10) history.shift();
+                    localStorage.setItem('history', JSON.stringify(history));
+                    updateHistoryUI();
+                } catch (e) {
+                    result.value = 'Error';
+                }
+            } else if (input === '+/-') {
+                // Toggle the sign of the current number
+                if (result.value !== '0' && result.value !== '') {
+                    if (result.value.startsWith('-')) {
+                        result.value = result.value.slice(1); // Remove the negative sign
+                    } else {
+                        result.value = '-' + result.value; // Add the negative sign
+                    }
+                }
+            } else if (['+', '-', '*', '/'].includes(input)) {
+                // Prevent operator at the beginning
+                if (result.value === '0' || result.value === '') {
+                    alert('Masukkan angka terlebih dahulu sebelum operator!');
+                    return;
+                }
+                // Prevent consecutive operators
+                if (/[\+\-\*\/]$/.test(result.value.slice(-1))) {
+                    result.value = result.value.slice(0, -1) + input;
+                } else {
+                    result.value += input;
+                }
+            } else if (input === '.') {
+                // Prevent multiple dots in one number
+                let lastNumber = result.value.split(/[\+\-\*\/]/).pop();
+                if (!lastNumber.includes('.')) {
+                    result.value += '.';
+                }
+            } else {
+                if (result.value === '0') {
+                    result.value = input;
+                } else {
+                    result.value += input;
+                }
+            }
+        }
+
+        function toggleHistory() {
+            historyContainer.style.display = historyContainer.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function clearHistory() {
+            history = [];
+            localStorage.removeItem('history');
+            updateHistoryUI();
+        }
+
+        document.addEventListener('keydown', function(event) {
+            const keyMap = {
+                'Enter': 'action',
+                'Escape': 'clear',
+                '/': '/',
+                '*': '*',
+                '-': '-',
+                '+': '+',
+                '.': '.',
+                '%': '%'
+            };
+            if (!isNaN(event.key)) {
+                handleInput(event.key);
+            } else if (keyMap[event.key]) {
+                handleInput(keyMap[event.key]);
+            }
+        });
+
+        updateHistoryUI();
+    </script>
+</body>
+</html>
